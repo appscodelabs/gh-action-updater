@@ -10,7 +10,7 @@ CM = ruamel.yaml.comments.CommentedMap
 CT = ruamel.yaml.CommentToken
 
 
-def fix_buildx(repo_root):
+def fix(repo_root):
     # repo_root = "/home/tamal/go/src/stash.appscode.dev/stash"
     directory = os.path.join(repo_root, ".github", "workflows")
 
@@ -68,4 +68,4 @@ def fix_buildx(repo_root):
 
 
 if __name__ == "__main__":
-    fix_buildx(sys.argv[1], *sys.argv[2:])
+    fix(sys.argv[1], *sys.argv[2:])
