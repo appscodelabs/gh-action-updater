@@ -24,12 +24,12 @@ for filename in os.listdir(directory):
         data = yaml.load(f)
         for job in data['jobs']:
             for i, step in enumerate(data['jobs'][job]['steps']):
-                # print(type(step))
-                # pprint(step)
-
                 if 'id' in step.keys() and step['id'] == 'buildx':
                     data['jobs'][job]['steps'].pop(i)
+                    # if 'name' in data['jobs'][job]['steps'][i].keys() and data['jobs'][job]['steps'][i]['name'] == 'Available platforms':
+                    #     data['jobs'][job]['steps'].pop(i)
 
+                    # add blank line before
                     data['jobs'][job]['steps'][i].ca.comment = [
                         None, [CT('\n', CommentMark(0), None)]]
 
@@ -56,8 +56,7 @@ for filename in os.listdir(directory):
                         'uses': 'docker/setup-qemu-action@v1'
                     }))
 
-                    # print(type(data['jobs'][job]['steps'][i]))
-                    # exit(1)
+                    break
         f.seek(0)
         # yaml.dump(data, f, width=2, indent=2, sort_keys=False)
         yaml.indent(mapping=2, sequence=4, offset=2)
