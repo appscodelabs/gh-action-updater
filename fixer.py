@@ -1,69 +1,71 @@
 #!/usr/bin/env python3
 
 import os
-# import yaml
+import sys
 import ruamel.yaml
 from pprint import pprint
 from ruamel.yaml.error import CommentMark
 
 CM = ruamel.yaml.comments.CommentedMap
 CT = ruamel.yaml.CommentToken
-# CMM = ruamel.yaml.error.CommentMark
 
-repo_root = "/home/tamal/go/src/stash.appscode.dev/stash"
-directory = os.path.join(repo_root, ".github", "workflows")
 
-for filename in os.listdir(directory):
-    if not filename.endswith(".yml"):
-        continue
+def fix_buildx(repo_root):
+    # repo_root = "/home/tamal/go/src/stash.appscode.dev/stash"
+    directory = os.path.join(repo_root, ".github", "workflows")
 
-    with open(os.path.join(directory, filename), 'r+') as f:
-        yaml = ruamel.yaml.YAML(typ='rt')
-        yaml.preserve_quotes = True
-        yaml.width = 4096
-        data = yaml.load(f)
-        for job in data['jobs']:
-            for i, step in enumerate(data['jobs'][job]['steps']):
-                if 'name' in data['jobs'][job]['steps'][i].keys() and data['jobs'][job]['steps'][i]['name'] == 'Available platforms':
-                    data['jobs'][job]['steps'].pop(i)
-                    break
+    for filename in os.listdir(directory):
+        if not filename.endswith(".yml"):
+            continue
 
-            for i, step in enumerate(data['jobs'][job]['steps']):
-                if 'id' in step.keys() and step['id'] == 'buildx':
-                    data['jobs'][job]['steps'].pop(i)
-                    # if 'name' in data['jobs'][job]['steps'][i].keys() and data['jobs'][job]['steps'][i]['name'] == 'Available platforms':
-                    #     data['jobs'][job]['steps'].pop(i)
+        with open(os.path.join(directory, filename), 'r+') as f:
+            yaml = ruamel.yaml.YAML(typ='rt')
+            yaml.preserve_quotes = True
+            yaml.width = 4096
+            data = yaml.load(f)
+            for job in data['jobs']:
+                for i, step in enumerate(data['jobs'][job]['steps']):
+                    if 'name' in data['jobs'][job]['steps'][i].keys() and data['jobs'][job]['steps'][i]['name'] == 'Available platforms':
+                        data['jobs'][job]['steps'].pop(i)
+                        break
 
-                    # add blank line before
-                    data['jobs'][job]['steps'][i].ca.comment = [
-                        None, [CT('\n', CommentMark(0), None)]]
+                for i, step in enumerate(data['jobs'][job]['steps']):
+                    if 'id' in step.keys() and step['id'] == 'buildx':
+                        data['jobs'][job]['steps'].pop(i)
 
-                    e1 = CM({
-                        'name': 'Set up Docker Buildx',
-                        'uses': 'docker/setup-buildx-action@v1'
-                    })
-                    # e1.yaml_set_start_comment('\n')
-                    e1.ca.comment = [
-                        None, [CT('\n', CommentMark(0), None)]]
-                    data['jobs'][job]['steps'].insert(i, e1)
+                        # add blank line before
+                        data['jobs'][job]['steps'][i].ca.comment = [
+                            None, [CT('\n', CommentMark(0), None)]]
 
-                    e2 = CM({
-                        'name': 'Available platforms',
-                        'run': 'echo ${{steps.qemu.outputs.platforms}}'
-                    })
-                    e2.ca.comment = [
-                        None, [CT('\n', CommentMark(0), None)]]
-                    data['jobs'][job]['steps'].insert(i, e2)
+                        e1 = CM({
+                            'name': 'Set up Docker Buildx',
+                            'uses': 'docker/setup-buildx-action@v1'
+                        })
+                        # e1.yaml_set_start_comment('\n')
+                        e1.ca.comment = [
+                            None, [CT('\n', CommentMark(0), None)]]
+                        data['jobs'][job]['steps'].insert(i, e1)
 
-                    data['jobs'][job]['steps'].insert(i, CM({
-                        'name': 'Set up QEMU',
-                        'id': 'qemu',
-                        'uses': 'docker/setup-qemu-action@v1'
-                    }))
+                        e2 = CM({
+                            'name': 'Available platforms',
+                            'run': 'echo ${{steps.qemu.outputs.platforms}}'
+                        })
+                        e2.ca.comment = [
+                            None, [CT('\n', CommentMark(0), None)]]
+                        data['jobs'][job]['steps'].insert(i, e2)
 
-                    break
-        f.seek(0)
-        f.truncate(0)
-        # yaml.dump(data, f, width=2, indent=2, sort_keys=False)
-        yaml.indent(mapping=2, sequence=4, offset=2)
-        yaml.dump(data, f)
+                        data['jobs'][job]['steps'].insert(i, CM({
+                            'name': 'Set up QEMU',
+                            'id': 'qemu',
+                            'uses': 'docker/setup-qemu-action@v1'
+                        }))
+
+                        break
+            f.seek(0)
+            f.truncate(0)
+            yaml.indent(mapping=2, sequence=4, offset=2)
+            yaml.dump(data, f)
+
+
+if __name__ == "__main__":
+    fix_buildx(sys.argv[1], *sys.argv[2:])
