@@ -24,6 +24,11 @@ for filename in os.listdir(directory):
         data = yaml.load(f)
         for job in data['jobs']:
             for i, step in enumerate(data['jobs'][job]['steps']):
+                if 'name' in data['jobs'][job]['steps'][i].keys() and data['jobs'][job]['steps'][i]['name'] == 'Available platforms':
+                    data['jobs'][job]['steps'].pop(i)
+                    break
+
+            for i, step in enumerate(data['jobs'][job]['steps']):
                 if 'id' in step.keys() and step['id'] == 'buildx':
                     data['jobs'][job]['steps'].pop(i)
                     # if 'name' in data['jobs'][job]['steps'][i].keys() and data['jobs'][job]['steps'][i]['name'] == 'Available platforms':
@@ -58,6 +63,7 @@ for filename in os.listdir(directory):
 
                     break
         f.seek(0)
+        f.truncate(0)
         # yaml.dump(data, f, width=2, indent=2, sort_keys=False)
         yaml.indent(mapping=2, sequence=4, offset=2)
         yaml.dump(data, f)
