@@ -4,8 +4,11 @@ import os
 # import yaml
 import ruamel.yaml
 from pprint import pprint
+from ruamel.yaml.error import CommentMark
 
 CM = ruamel.yaml.comments.CommentedMap
+CT = ruamel.yaml.CommentToken
+# CMM = ruamel.yaml.error.CommentMark
 
 repo_root = "/home/tamal/go/src/stash.appscode.dev/stash"
 directory = os.path.join(repo_root, ".github", "workflows")
@@ -27,23 +30,24 @@ for filename in os.listdir(directory):
                 if 'id' in step.keys() and step['id'] == 'buildx':
                     data['jobs'][job]['steps'].pop(i)
 
+                    data['jobs'][job]['steps'][i].ca.comment = [
+                        None, [CT('\n', CommentMark(0), None)]]
+
                     e1 = CM({
                         'name': 'Set up Docker Buildx',
                         'uses': 'docker/setup-buildx-action@v1'
                     })
-                    # e1.ca.items[1] = [None, None, None, 'ff']
-                    # e1.ca.items = list(None)
-                    e1.yaml_set_comment_before_after_key(
-                        'uses', after='fhhfhfghfghgfh')
-                    e1.yaml_set_start_comment('fggggggggggg')
+                    # e1.yaml_set_start_comment('\n')
+                    e1.ca.comment = [
+                        None, [CT('\n', CommentMark(0), None)]]
                     data['jobs'][job]['steps'].insert(i, e1)
 
                     e2 = CM({
                         'name': 'Available platforms',
                         'run': 'echo ${{steps.qemu.outputs.platforms}}'
                     })
-                    #e2.ca.items = list(None)
-                    # e2.yaml_set_start_comment('\n')
+                    e2.ca.comment = [
+                        None, [CT('\n', CommentMark(0), None)]]
                     data['jobs'][job]['steps'].insert(i, e2)
 
                     data['jobs'][job]['steps'].insert(i, CM({
